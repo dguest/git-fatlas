@@ -1,20 +1,30 @@
 # scripts to find packages in a repo
 
+# _______________________________________________________________________
+# init function
+#
+# This is the first thing you'll have to call to make a sparse
+# checkout of Athena. By default this assumes you want to pull from
+# the main athena repo and use release 21.2.
+#
 _git-fatlas-init_usage() {
     echo "usage: $1 [-h] [-r release] [-u URL]"
 }
 function git-fatlas-init() {
     (
+        # set default configuration
         local RELEASE=21.2
         local URL=ssh://git@gitlab.cern.ch:7999/atlas/athena.git
 
+        # parse options
         local opt
         while getopts ":hr:u:" opt $@; do
             case $opt in
                 h) _git-fatlas-init_usage $FUNCNAME;
                    cat <<EOF
 
-Sparse checkout atlas repo and switch to a branch
+Sparse checkout atlas repo and switch to a branch. Note that after
+you've run this you need to use git-fatlas-add to add some packages.
 
 default release: $RELEASE
 default repo: $URL
@@ -36,7 +46,12 @@ EOF
             esac
         done
 
+        # clone a release without checking out any files
         git clone --no-checkout $URL
+
+        # set up the sparse checkout, then move to the desired
+        # branch. Note that this leaves git in a rather ugly position
+        # since there are no packages checked out.
         cd athena
         git config core.sparsecheckout true
         touch .git/info/sparse-checkout
@@ -45,20 +60,62 @@ EOF
 }
 
 
-function git-fatlas-remake-package-list() {
+# ______________________________________________________________________
+# Remake package list
+#
+# We cache the package list in a local file to make tab-complete
+# snappy. This could probably be further optimized (i.e. check the
+# release and remove packages that aren't used, rebuild automatically
+# when it goes out of date).
+#
+function git-fatlas-make-package-list() {
     git ls-tree --name-only -r HEAD | grep CMakeLists.txt\
-        | sed 's@/CMakeLists.txt@@' | sort -f > ${1-.pkg_list}
+        | sed 's@/CMakeLists.txt@@' | sort -f > ${1}
+}
+function git-fatlas-get-package-list() {
+    local pkg_list_dir=/tmp/${USER-fatlas}/${PWD#/}
+    mkdir -p $pkg_list_dir
+    local pkg_list=${pkg_list_dir}/pkg_list
+    if [[ ! -f $pkg_list ]]; then
+        git-fatlas-make-package-list $pkg_list
+    fi
+    echo $pkg_list
+}
+function git-fatlas-remake-package-list() {
+    # TODO, merge this with the above function
+    local pkg_list_dir=/tmp/${USER-fatlas}/${PWD#/}
+    mkdir -p $pkg_list_dir
+    local pkg_list=${pkg_list_dir}/pkg_list
+    git-fatlas-make-package-list $pkg_list
 }
 
+# ______________________________________________________________________
+# Add package
+#
+# Should be pretty self-explanatory: adds the packages you ask for to
+# the working tree. There are also tab complete functions defined
+# below.
+#
 function git-fatlas-add() {
+    local pkg_list=$(git-fatlas-get-package-list)
     local SP=.git/info/sparse-checkout
-    local FILE
-    for FILE in ${@:1} ; do
-        echo ${FILE%/}/ >> $SP
+    local STUB
+    local FULLPATH
+    for STUB in ${@:1} ; do
+        egrep "(^|/)${STUB%/}(/|$)" $pkg_list | while read FULLPATH; do
+            echo ${FULLPATH%/}/ | tee -a $SP
+        done
     done
     git checkout HEAD
 }
 
+
+# ____________________________________________________________________
+# Remove package
+#
+# This one is a bit tricky in that we have to make sure we don't
+# remove the last package. Git doesn't like that for some reason.
+#
 function git-fatlas-remove() {
     local SP=.git/info/sparse-checkout
     local TMP=$(cat $SP | sort -u | egrep -v $1)
@@ -74,15 +131,14 @@ function git-fatlas-remove() {
     git checkout HEAD
 }
 
-# TODO: add tab complete for remove?
 
+# ____________________________________________________________________
+# Tab complete function for the add utility
+#
 function _git-fatlas-add() {
-    local pkg_list_dir=/tmp/${USER}/${PWD}
-    mkdir -p $pkg_list_dir
-    local pkg_list=${pkg_list_dir}/pkg_list
-    if [[ ! -f $pkg_list ]]; then
-        git-fatlas-remake-package-list $pkg_list
-    fi
+
+    # build or get package list
+    local pkg_list=$(git-fatlas-get-package-list)
 
     # first check for completion from the root up
     COMPREPLY=( $(compgen -W "$(cat $pkg_list)" -- $2 ) )
