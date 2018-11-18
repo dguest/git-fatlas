@@ -47,15 +47,17 @@ EOF
         done
 
         # clone a release without checking out any files
-        git clone --no-checkout $URL
+        git clone --no-checkout $URL athena
+        cd athena
 
         # set up the sparse checkout, then move to the desired
         # branch. Note that this leaves git in a rather ugly position
         # since there are no packages checked out.
-        cd athena
         git config core.sparsecheckout true
         touch .git/info/sparse-checkout
-        git reset --soft origin/${RELEASE}
+        git branch ${RELEASE} origin/${RELEASE}
+        git reset --soft ${RELEASE}
+        git symbolic-ref HEAD refs/heads/${RELEASE}
     )
 }
 
