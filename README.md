@@ -33,21 +33,24 @@ Comparison to other packages
 ----------------------------
 
 In general this package won't try to hold your hand with git or CMake:
-it won't auto-generate any files or assume that you have specifically
-named forks. To be an effective developer in a large collaboration,
-you have have to understand what git is doing, and you need _some_
-understanding of what CMake is doing.
+it won't auto-generate any files or assume that you'll always want to
+push to a specific fork. This is a slightly different philosophy from
+other packages, for example:
 
- - `git-atlas`: This assumes you want a `WorkDir`, which gets in the
-   way of compiling Athena code as a part of a larger project. There
-   are workarounds for this (package filters, etc) but in general
-   working with them is more confusing than working with the raw git
-   sparse checkout.
+ - `git-atlas`: This assumes you want a `WorkDir`, which includes a
+   `package_filters.txt` file. This is useful for full Atlas releases,
+   but it can get in the way if you just want to rebuild a few Athena
+   package within another project.
 
  - `acm`: This is designed to make working with git and CMake more
-   like working with RootCore. It is built on top of `git-atlas` so it
-   inherits all the confusing bits. Fatlas tries to be more
-   "git-like", and doesn't try to hide CMake from you.
+   like working with RootCore. It streamlines some common operations
+   when maintaining analysis code, but being built on top of
+   `git-atlas` it also inherits the confusing bits.
+
+In short, if you _prefer_ git and CMake to whatever ATLAS was using
+before but find the sparse checkout thing a bit confusing, this
+package might be useful to you. If you want to abstract away most of
+the underlying tools, you should use something else.
 
 
 Installation
