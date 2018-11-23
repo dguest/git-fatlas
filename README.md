@@ -29,6 +29,30 @@ or fix it. This is to make that easy:
 To remove a package use `git-fatlas-remove Path/To/Package`.
 
 
+List of commands
+----------------
+
+The high-level commands are:
+
+ - `git-fatlas-init`: Clone an Athena repository here. Nothing will be
+   checked out.
+ - `git-fatlas-add`: Add a package to the sparse checkout.
+ - `git-fatlas-remove`: Remove a package from the sparse checkout.
+ - `git-fatlas-new`: Add something from the working tree to the sparse
+   checkout. This is how you should add new packages to the repo. Note
+   that you still need to commit your changes.
+
+Since this is a new package there are still some plumbing commands
+that you might have to run sometimes.
+
+ - `git-fatlas-make-package-list`: build the package list in the tmp
+   directory, and echo where it's stored. This is only used to make
+   tab complete faster.
+ - `git-fatlas-remake-package-list`: force rebuilding the package
+   list. If you add or remove a bunch of things you might have to call
+   this. Hopefully not though.
+
+
 Comparison to other packages
 ----------------------------
 

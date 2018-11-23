@@ -78,17 +78,21 @@ function git-fatlas-get-package-list() {
     local pkg_list_dir=/tmp/${USER-fatlas}/${PWD#/}
     mkdir -p $pkg_list_dir
     local pkg_list=${pkg_list_dir}/pkg_list
+    if [[ $# == 1 ]]; then
+       if [[ $1 == remake ]]; then
+           rm -f $pkg_list
+       else
+           echo "unrecognized option $1" 2>&1
+           return 1
+       fi
+    fi
     if [[ ! -f $pkg_list ]]; then
         git-fatlas-make-package-list $pkg_list
     fi
     echo $pkg_list
 }
 function git-fatlas-remake-package-list() {
-    # TODO, merge this with the above function
-    local pkg_list_dir=/tmp/${USER-fatlas}/${PWD#/}
-    mkdir -p $pkg_list_dir
-    local pkg_list=${pkg_list_dir}/pkg_list
-    git-fatlas-make-package-list $pkg_list
+    git-fatlas-get-package-list remake
 }
 
 # ______________________________________________________________________
@@ -111,6 +115,30 @@ function git-fatlas-add() {
     git checkout HEAD
 }
 
+# ____________________________________________________________________
+# Add a new package to the repo
+#
+# If you already have something in the working tree and want to check
+# it in, you should call this function on it.
+#
+function git-fatlas-new() {
+    local SP=.git/info/sparse-checkout
+    local STUB
+    for STUB in ${@:1} ; do
+        if [[ ! -d ${STUB} ]]; then
+            echo "${STUB} is not a directory" 2>&1
+            return 1
+        elif [[ ! -f ${STUB}/CMakeLists.txt ]]; then
+            cat <<EOF 1>&2
+${STUB} does not contain a CMakeLists.txt file, normally a package should \
+contain this
+EOF
+            return 1
+        fi
+        echo ${STUB%/}/ | tee -a $SP
+        git add ${STUB%/}/
+    done
+}
 
 # ____________________________________________________________________
 # Remove package
