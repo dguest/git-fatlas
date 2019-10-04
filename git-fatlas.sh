@@ -63,9 +63,14 @@ EOF
     )
 }
 
+# _____________________________________________________________________
+# Add a new remote.
+#
+# By default this is your user name.
 function git-fatlas-user-remote-add() {
     local user=${1-${USER}}
-    local URL=$(git remote get-url atlas | sed "s/atlas/${user}/")
+    local br=$(git remote | head -n1)
+    local URL=$(git remote get-url $br | sed -r "s:[^/]*(/[^/]*)$:${user}\1:")
     git remote add ${user} ${URL}
 }
 

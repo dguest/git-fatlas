@@ -41,6 +41,8 @@ The high-level commands are:
  - `git-fatlas-new`: Add something from the working tree to the sparse
    checkout. This is how you should add new packages to the repo. Note
    that you still need to commit your changes.
+ - `git-fatlas-user-remote-add`: add a user remote based on the path
+   you checked out.
 
 Since this is a new package there are still some plumbing commands
 that you might have to run sometimes.
