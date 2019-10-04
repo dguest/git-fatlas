@@ -47,7 +47,7 @@ EOF
         done
 
         # clone a release without checking out any files
-        git clone --no-checkout $URL athena
+        git clone --no-checkout -o atlas $URL athena
         cd athena
 
         # set up the sparse checkout, then move to the desired
@@ -55,10 +55,18 @@ EOF
         # since there are no packages checked out.
         git config core.sparsecheckout true
         touch .git/info/sparse-checkout
-        git branch ${RELEASE} origin/${RELEASE}
+        if [[ ${RELEASE} != master ]]; then
+            git branch ${RELEASE} origin/${RELEASE}
+        fi
         git reset --soft ${RELEASE}
         git symbolic-ref HEAD refs/heads/${RELEASE}
     )
+}
+
+function git-fatlas-user-remote-add() {
+    local user=${1-${USER}}
+    local URL=$(git remote get-url atlas | sed "s/atlas/${user}/")
+    git remote add ${user} ${URL}
 }
 
 
