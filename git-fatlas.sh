@@ -56,7 +56,7 @@ EOF
         git config core.sparsecheckout true
         touch .git/info/sparse-checkout
         if [[ ${RELEASE} != master ]]; then
-            git branch ${RELEASE} origin/${RELEASE}
+            git branch ${RELEASE} atlas/${RELEASE}
         fi
         git reset --soft ${RELEASE}
         git symbolic-ref HEAD refs/heads/${RELEASE}
