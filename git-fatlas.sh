@@ -13,7 +13,7 @@ _git-fatlas-init_usage() {
 function git-fatlas-init() {
     (
         # set default configuration
-        local RELEASE=21.2
+        local RELEASE=master
         local URL=ssh://git@gitlab.cern.ch:7999/atlas/athena.git
 
         # parse options

@@ -53,8 +53,10 @@ that you might have to run sometimes.
  - `git-fatlas-remake-package-list`: force rebuilding the package
    list. If you add or remove a bunch of things you might have to call
    this. Hopefully not though.
-
-
+   
+For most other commands you can use standard git.
+   
+ 
 Comparison to other packages
 ----------------------------
 
@@ -84,3 +86,40 @@ Installation
 
  - Clone this repo
  - Add `source git-fatlas.sh` to your `.bashrc`
+
+
+Examples
+--------
+
+### Working with tags, merge requests or branches which are not `master` ###
+
+Running 
+```
+git-fatlas-init
+cd athena
+git-fatlas-add <PackgeName>
+``` 
+will checkout `<PackageName>` from `master`. 
+
+Run 
+```
+git-fatlas-init -r <AthenaBranchName>
+```
+if you want to checkout packages from a **branch** which is not `master` instead.
+
+If you need to checkout packages from a tag or a merge request, you need to use standard `git` commands.
+
+```
+git-fatlas-init
+cd athena
+git checkout -b <MyNewBranchName> <AthenaTagName>
+```
+will checkout the desired tag in a local branch called `<MyNewBranchName>` and automatically switch to the new branch, whereas
+
+```
+git-fatlas-init
+cd athena
+git fetch origin merge-requests/<RequestID>/head:<MyNewBranchName> && git checkout <MyNewBranchName>
+```
+will do the same but with a merge request.
+
