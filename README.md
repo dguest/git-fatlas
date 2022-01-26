@@ -35,7 +35,7 @@ List of commands
 The high-level commands are:
 
  - `git-fatlas-init`: Clone an Athena repository here. Nothing will be
-   checked out. 
+   checked out.
  - `git-fatlas-add`: Add a package to the sparse checkout.
  - `git-fatlas-remove`: Remove a package from the sparse checkout.
  - `git-fatlas-new`: Add something from the working tree to the sparse
