@@ -119,7 +119,7 @@ will checkout the desired tag in a local branch called `<MyNewBranchName>` and a
 ```
 git-fatlas-init
 cd athena
-git fetch origin merge-requests/<RequestID>/head:<MyNewBranchName> && git checkout <MyNewBranchName>
+git fetch atlas merge-requests/<RequestID>/head:<MyNewBranchName> && git checkout <MyNewBranchName>
 ```
 will do the same but with a merge request.
 
