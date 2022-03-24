@@ -91,35 +91,48 @@ Installation
 Examples
 --------
 
-### Working with tags, merge requests or branches which are not `master` ###
+### 1. Working with `master`
 
-Running 
+Running the following will checkout `<PackageName>` from `master`. 
 ```
 git-fatlas-init
 cd athena
 git-fatlas-add <PackgeName>
 ``` 
-will checkout `<PackageName>` from `master`. 
 
-Run 
+If you want to build standalone changes to Athena, you can then run
+```
+git-fatlas-add WorkDir
+cd ../build
+cmake ../athena/Projects/WorkDir; make
+```
+
+### 2. Working branches which are not `master`
+
+As above, but use the `-r` argument if you want to checkout packages from a **branch** which is not `master`.
 ```
 git-fatlas-init -r <AthenaBranchName>
 ```
-if you want to checkout packages from a **branch** which is not `master` instead.
 
-If you need to checkout packages from a tag or a merge request, you need to use standard `git` commands.
 
+### 3. Working with tags
+
+If you need to checkout packages from a tag, you need to use standard `git` commands.
+The following will checkout the desired **tag** in a local branch called `<MyNewBranchName>` and automatically switch to the new branch.
 ```
 git-fatlas-init
 cd athena
 git checkout -b <MyNewBranchName> <AthenaTagName>
 ```
-will checkout the desired tag in a local branch called `<MyNewBranchName>` and automatically switch to the new branch, whereas
 
+
+### 4. Working with merge requests 
+
+If you need to checkout packages from a merge request, you need to use standard `git` commands.
+The following will checkout the desired **merge request** in a local branch called `<MyNewBranchName>` and automatically switch to the new branch.
 ```
 git-fatlas-init
 cd athena
 git fetch atlas merge-requests/<RequestID>/head:<MyNewBranchName> && git checkout <MyNewBranchName>
 ```
-will do the same but with a merge request.
 
