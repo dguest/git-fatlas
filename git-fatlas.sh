@@ -174,6 +174,20 @@ function git-fatlas-remove() {
     git checkout HEAD
 }
 
+# ____________________________________________________________________
+# Update copyright statements
+#
+# Only updates the copyrights for files you've touched since branching
+# from atlas/master, or whatever branch you name
+#
+function git-fatlas-copyright-update() {
+    local Y=$(date +%Y)
+    local T=$(mktemp)
+    git diff --name-only ${1-atlas/master}... | while read F ; do
+        sed -r "s/(^.*Copyright .* 200.-+).*( CERN.*)/\1$Y\2/" $F > $T
+        mv $T $F
+    done
+}
 
 # ____________________________________________________________________
 # Tab complete function for the add utility

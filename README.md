@@ -53,10 +53,13 @@ that you might have to run sometimes.
  - `git-fatlas-remake-package-list`: force rebuilding the package
    list. If you add or remove a bunch of things you might have to call
    this. Hopefully not though.
-   
+- `git-fatlas-copyright-update`: update copyright notices to the
+  current year. Takes an optional argument for the commit / branch /
+  tag you started with, defaults to `atlas/master`.
+
 For most other commands you can use standard git.
-   
- 
+
+
 Comparison to other packages
 ----------------------------
 
