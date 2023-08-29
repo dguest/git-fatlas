@@ -13,7 +13,7 @@ _git-fatlas-init_usage() {
 function git-fatlas-init() {
     (
         # set default configuration
-        local RELEASE=master
+        local RELEASE=main
         local URL=ssh://git@gitlab.cern.ch:7999/atlas/athena.git
 
         # parse options
@@ -55,7 +55,7 @@ EOF
         # since there are no packages checked out.
         git config core.sparsecheckout true
         touch .git/info/sparse-checkout
-        if [[ ${RELEASE} != master ]]; then
+        if [[ ${RELEASE} != main ]]; then
             git branch ${RELEASE} atlas/${RELEASE}
         fi
         git reset --soft ${RELEASE}
@@ -178,12 +178,12 @@ function git-fatlas-remove() {
 # Update copyright statements
 #
 # Only updates the copyrights for files you've touched since branching
-# from atlas/master, or whatever branch you name
+# from atlas/main, or whatever branch you name
 #
 function git-fatlas-copyright-update() {
     local Y=$(date +%Y)
     local T=$(mktemp)
-    git diff --name-only ${1-atlas/master}... | while read F ; do
+    git diff --name-only ${1-atlas/main}... | while read F ; do
         sed -r "s/(^.*Copyright .* 200.-+).*( CERN.*)/\1$Y\2/" $F > $T
         mv $T $F
     done
