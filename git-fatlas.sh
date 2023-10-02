@@ -1,4 +1,7 @@
 # scripts to find packages in a repo
+#
+# Set a default upstream if none exists
+: ${GIT_FATLAS_UPSTREAM=ssh://git@gitlab.cern.ch:7999/atlas/athena.git}
 
 # _______________________________________________________________________
 # init function
@@ -14,7 +17,7 @@ function git-fatlas-init() {
     (
         # set default configuration
         local RELEASE=main
-        local URL=ssh://git@gitlab.cern.ch:7999/atlas/athena.git
+        local URL=${GIT_FATLAS_UPSTREAM}
 
         # parse options
         local opt
@@ -72,6 +75,10 @@ function git-fatlas-user-remote-add() {
     local br=$(git remote | head -n1)
     local URL=$(git remote get-url $br | sed -r "s:[^/]*(/[^/]*)$:${user}\1:")
     git remote add ${user} ${URL}
+}
+# this is just the standard atlas one
+function git-fatlas-gitlab-remote-add() {
+    git remote add atlas ${GIT_FATLAS_UPSTREAM}
 }
 
 
