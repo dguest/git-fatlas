@@ -11,60 +11,70 @@
 # the main athena repo and use release 21.2.
 #
 _git-fatlas-init_usage() {
-    echo "usage: $1 [-h] [-r release] [-u URL]"
+    echo "usage: $1 [-h] [-r release] [-u URL] [-s SHARED]"
 }
-function git-fatlas-init() {
-    (
-        # set default configuration
-        local RELEASE=main
-        local URL=${GIT_FATLAS_UPSTREAM}
+function git-fatlas-init() (
+    # set default configuration
+    local RELEASE=main
+    local URL=${GIT_FATLAS_UPSTREAM}
+    local SHARED=""
 
-        # parse options
-        local opt
-        while getopts ":hr:u:" opt $@; do
-            case $opt in
-                h) _git-fatlas-init_usage $FUNCNAME;
-                   cat <<EOF
+    # parse options
+    local opt
+    while getopts ":hr:u:s:" opt $@; do
+        case $opt in
+            h) _git-fatlas-init_usage $FUNCNAME;
+               cat <<EOF
 
 Sparse checkout atlas repo and switch to a branch. Note that after
 you've run this you need to use git-fatlas-add to add some packages.
+
+With the -s option, clone from a local shared repository
 
 default release: $RELEASE
 default repo: $URL
 
 EOF
-                   return 1;;
-                r) RELEASE=${OPTARG} ;;
-                u) URL=${OPTARG} ;;
-                # handle errors
-                \?) _git-fatlas-init_usage $FUNCNAME;
-                    echo "Unknown option: -$OPTARG" >&2;
-                    return 1;;
-                :) _git-fatlas-init_usage $FUNCNAME;
-                   echo "Missing argument for -$OPTARG" >&2;
-                   return 1;;
-                *) _git-fatlas-init_usage $FUNCNAME;
-                   echo "Unimplemented option: -$OPTARG" >&2;
-                   return 1;;
-            esac
-        done
+               return 1;;
+            r) RELEASE=${OPTARG} ;;
+            u) URL=${OPTARG} ;;
+            s) SHARED=${OPTARG} ;;
+            # handle errors
+            \?) _git-fatlas-init_usage $FUNCNAME;
+                echo "Unknown option: -$OPTARG" >&2;
+                return 1;;
+            :) _git-fatlas-init_usage $FUNCNAME;
+               echo "Missing argument for -$OPTARG" >&2;
+               return 1;;
+            *) _git-fatlas-init_usage $FUNCNAME;
+               echo "Unimplemented option: -$OPTARG" >&2;
+               return 1;;
+        esac
+    done
 
+    if [[ $SHARED ]]; then
+        git clone --no-checkout --shared $SHARED athena
+        cd athena
+        git remote add atlas $URL
+    else
         # clone a release without checking out any files
         git clone --no-checkout -o atlas $URL athena
         cd athena
+    fi
 
-        # set up the sparse checkout, then move to the desired
-        # branch. Note that this leaves git in a rather ugly position
-        # since there are no packages checked out.
-        git config core.sparsecheckout true
-        touch .git/info/sparse-checkout
-        if [[ ${RELEASE} != main ]]; then
-            git branch ${RELEASE} atlas/${RELEASE}
-        fi
-        git reset --soft ${RELEASE}
-        git symbolic-ref HEAD refs/heads/${RELEASE}
-    )
-}
+    # set up the sparse checkout, then move to the desired
+    # branch. Note that this leaves git in a rather ugly position
+    # since there are no packages checked out.
+    git config core.sparsecheckout true
+    touch .git/info/sparse-checkout
+    if [[ ${RELEASE} != main ]]; then
+        git branch ${RELEASE} atlas/${RELEASE}
+    fi
+    git reset --soft ${RELEASE}
+    git symbolic-ref HEAD refs/heads/${RELEASE}
+    git fetch --set-upstream atlas ${RELEASE}
+)
+
 
 # _____________________________________________________________________
 # Add a new remote.
