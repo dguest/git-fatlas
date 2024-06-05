@@ -70,23 +70,13 @@ EOF
     # branch. Note that this leaves git in a rather ugly position
     # since there are no packages checked out.
     echo setting sparse
-    git sparse-checkout set
+    git sparse-checkout init --cone
 
     echo checking out ${RELEASE}
     git checkout ${RELEASE}
 
     echo caching package list
-    git-fatlas-remake-package-list
-
-    # echo fetching and setting upstream
-    # git fetch --set-upstream atlas ${RELEASE}
-    # if [[ ${RELEASE} != main ]]; then
-    #     git branch ${RELEASE} atlas/${RELEASE}
-    # fi
-    # echo resetting
-    # git reset --soft atlas/${RELEASE}
-    # echo symlinking
-    # git symbolic-ref HEAD refs/heads/${RELEASE}
+    git-fatlas-remake-package-list > /dev/null
 )
 
 
@@ -146,10 +136,26 @@ function git-fatlas-remake-package-list() {
 # the working tree. There are also tab complete functions defined
 # below.
 #
-function git-fatlas-add() (
-    set -eu
-    git sparse-checkout set ${1}
-)
+function git-fatlas-add() {
+
+    local LOG=${TABTEST-/dev/null}
+
+    echo "--- trying to add a package ---" >> $LOG
+    local pkg_list=$(git-fatlas-get-package-list)
+    echo "matching against $pkg_list" >> $LOG
+    echo "looking for $1" >> $LOG
+    local reply=( $(fgrep ${1} $pkg_list | egrep "[/^]$1$") )
+    echo "matches ${reply[*]}" >> $LOG
+
+    if (( ${#reply[*]} > 1 )); then
+        echo "ERROR: too many replies" | tee -a $LOG 2>&1
+        return 1
+    elif (( ${#reply[*]} == 0 )); then
+        echo "ERROR: no matches" | tee -a $LOG 2>&1
+        return 1
+    fi
+    git sparse-checkout add ${reply[*]}
+}
 
 # ____________________________________________________________________
 # Add a new package to the repo
@@ -182,20 +188,10 @@ EOF
 # This one is a bit tricky in that we have to make sure we don't
 # remove the last package. Git doesn't like that for some reason.
 #
-function git-fatlas-remove() {
-    local SP=.git/info/sparse-checkout
-    local TMP=$(cat $SP | sort -u | egrep -v $1)
-    if [[ ${TMP} == '' ]]; then
-        echo "ERROR: can't remove last package" 1>&2
-        return 1
-    fi
-    local FILE
-    rm $SP
-    for FILE in $TMP; do
-        echo $FILE >> $SP
-    done
-    git checkout HEAD
-}
+function git-fatlas-remove() (
+    local NEW=$(git sparse-checkout list | egrep -v $1 | tr '\n' ' ')
+    git sparse-checkout set $NEW
+)
 
 # ____________________________________________________________________
 # Update copyright statements
@@ -215,27 +211,43 @@ function git-fatlas-copyright-update() {
 # ____________________________________________________________________
 # Tab complete function for the add utility
 #
+# if you set TABTEST and then read it with `tail -f` you will see some
+# logging info
 function _git-fatlas-add() {
 
+    local LOG=${TABTEST-/dev/null}
+
     # build or get package list
+    echo "--- getting package list ---" >> $LOG
+    echo "looking for: $2" >> $LOG
     local pkg_list=$(git-fatlas-get-package-list)
+    echo "got $pkg_list" >> $LOG
 
     # first check for completion from the root up
+    echo "checking matches in package list" >> $LOG
     COMPREPLY=( $(compgen -W "$(cat $pkg_list)" -- $2 ) )
     if [[ ${#COMPREPLY[*]} != 0 ]]; then
+        echo "returning ${#COMPREPLY[*]} matches" >> $LOG
         return 0
     fi
 
     # then check for a unique fgrep match
+    echo "checking with fgrep" >> $LOG
     COMPREPLY=( $(fgrep ${2} $pkg_list ) )
     if [[ ${#COMPREPLY[*]} == 1 ]]; then
+        echo "returning ${#COMPREPLY[*]} matches" >> $LOG
         return 0
     fi
+    echo "got ${#COMPREPLY[*]} replies, moving on" >> $LOG
 
-    # then check to see if any part of the package name matches note
-    # that we can't include the full path because that will trigger a
-    # completion to any stub that is shared among all matches.
+    # then check to see if any part of the package name matches
+    #
+    # note that we can't include the full path because that will
+    # trigger a completion to any stub that is shared among all
+    # matches.
+    echo "checking with fgrep, excluding some patterns" >> $LOG
     COMPREPLY=( $(fgrep ${2} $pkg_list | egrep -o "[^/]*$2.*") )
+    echo "returning ${#COMPREPLY[*]} matches" >> $LOG
     return 0
 }
 complete -F _git-fatlas-add git-fatlas-add
