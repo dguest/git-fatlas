@@ -143,8 +143,8 @@ function git-fatlas-add() {
     echo "--- trying to add a package ---" >> $LOG
     local pkg_list=$(git-fatlas-get-package-list)
     echo "matching against $pkg_list" >> $LOG
-    echo "looking for $1" >> $LOG
-    local reply=( $(fgrep ${1} $pkg_list | egrep "[/^]$1$") )
+    echo "looking for: $1" >> $LOG
+    local reply=( $(fgrep ${1} $pkg_list | egrep "(/|^)$1$") )
     echo "matches ${reply[*]}" >> $LOG
 
     if (( ${#reply[*]} > 1 )); then
@@ -163,9 +163,8 @@ function git-fatlas-add() {
 # If you already have something in the working tree and want to check
 # it in, you should call this function on it.
 #
-function git-fatlas-new() {
-    local SP=.git/info/sparse-checkout
-    local STUB
+function git-fatlas-new() (
+    pkg_list=$(git-fatlas-get-package-list)
     for STUB in ${@:1} ; do
         if [[ ! -d ${STUB} ]]; then
             echo "${STUB} is not a directory" 2>&1
@@ -177,10 +176,11 @@ contain this
 EOF
             return 1
         fi
-        echo ${STUB%/}/ | tee -a $SP
+        echo ${STUB%/} >> $pkg_list
+        git-fatlas-add ${STUB%/}
         git add ${STUB%/}/
     done
-}
+)
 
 # ____________________________________________________________________
 # Remove package
