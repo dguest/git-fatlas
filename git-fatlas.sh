@@ -14,6 +14,10 @@ _git-fatlas-init_usage() {
     echo "usage: $1 [-h] [-r release] [-u URL] [-s SHARED]"
 }
 function git-fatlas-init() (
+
+    # make sure this quits if something goes wrong
+    set -eu
+
     # set default configuration
     local RELEASE=main
     local URL=${GIT_FATLAS_UPSTREAM}
@@ -132,7 +136,8 @@ function git-fatlas-remake-package-list() {
 # the working tree. There are also tab complete functions defined
 # below.
 #
-function git-fatlas-add() {
+function git-fatlas-add() (
+    set -eu
     local pkg_list=$(git-fatlas-get-package-list)
     local SP=.git/info/sparse-checkout
     local STUB
@@ -143,7 +148,7 @@ function git-fatlas-add() {
         done
     done
     git checkout HEAD
-}
+)
 
 # ____________________________________________________________________
 # Add a new package to the repo
