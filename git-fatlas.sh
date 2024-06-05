@@ -69,14 +69,24 @@ EOF
     # set up the sparse checkout, then move to the desired
     # branch. Note that this leaves git in a rather ugly position
     # since there are no packages checked out.
-    git config core.sparsecheckout true
-    touch .git/info/sparse-checkout
-    if [[ ${RELEASE} != main ]]; then
-        git branch ${RELEASE} atlas/${RELEASE}
-    fi
-    git reset --soft ${RELEASE}
-    git symbolic-ref HEAD refs/heads/${RELEASE}
-    git fetch --set-upstream atlas ${RELEASE}
+    echo setting sparse
+    git sparse-checkout set
+
+    echo checking out ${RELEASE}
+    git checkout ${RELEASE}
+
+    echo caching package list
+    git-fatlas-remake-package-list
+
+    # echo fetching and setting upstream
+    # git fetch --set-upstream atlas ${RELEASE}
+    # if [[ ${RELEASE} != main ]]; then
+    #     git branch ${RELEASE} atlas/${RELEASE}
+    # fi
+    # echo resetting
+    # git reset --soft atlas/${RELEASE}
+    # echo symlinking
+    # git symbolic-ref HEAD refs/heads/${RELEASE}
 )
 
 
@@ -138,16 +148,7 @@ function git-fatlas-remake-package-list() {
 #
 function git-fatlas-add() (
     set -eu
-    local pkg_list=$(git-fatlas-get-package-list)
-    local SP=.git/info/sparse-checkout
-    local STUB
-    local FULLPATH
-    for STUB in ${@:1} ; do
-        egrep "(^|/)${STUB%/}(/|$)" $pkg_list | while read FULLPATH; do
-            echo ${FULLPATH%/}/ | tee -a $SP
-        done
-    done
-    git checkout HEAD
+    git sparse-checkout set ${1}
 )
 
 # ____________________________________________________________________
