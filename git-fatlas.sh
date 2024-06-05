@@ -11,7 +11,7 @@
 # the main athena repo and use release 21.2.
 #
 _git-fatlas-init_usage() {
-    echo "usage: $1 [-h] [-r release] [-u URL] [-s SHARED]"
+    echo "usage: $1 [-h] [-v] [-r release] [-u URL] [-s SHARED]"
 }
 function git-fatlas-init() (
 
@@ -22,10 +22,11 @@ function git-fatlas-init() (
     local RELEASE=main
     local URL=${GIT_FATLAS_UPSTREAM}
     local SHARED=""
+    VLOG=/dev/null
 
     # parse options
     local opt
-    while getopts ":hr:u:s:" opt $@; do
+    while getopts ":hvr:u:s:" opt $@; do
         case $opt in
             h) _git-fatlas-init_usage $FUNCNAME;
                cat <<EOF
@@ -40,6 +41,7 @@ default repo: $URL
 
 EOF
                return 1;;
+            v) VLOG=/dev/stdout ;;
             r) RELEASE=${OPTARG} ;;
             u) URL=${OPTARG} ;;
             s) SHARED=${OPTARG} ;;
@@ -69,14 +71,13 @@ EOF
     # set up the sparse checkout, then move to the desired
     # branch. Note that this leaves git in a rather ugly position
     # since there are no packages checked out.
-    echo setting sparse
     git sparse-checkout init --cone
 
-    echo checking out ${RELEASE}
+    echo checking out ${RELEASE} > $VLOG
     git checkout ${RELEASE}
 
-    echo caching package list
-    git-fatlas-remake-package-list > /dev/null
+    echo caching package list > $VLOG
+    git-fatlas-remake-package-list > $VLOG
 )
 
 
